@@ -1,4 +1,4 @@
-export const BASE_PATH = "";
+export const BASE_PATH = "/blog";
 
 export async function loadMetaData() {
     const meta_data = await fetch(`${BASE_PATH}/assets/meta_data.json`);
