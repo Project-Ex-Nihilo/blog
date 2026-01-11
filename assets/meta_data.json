@@ -1,0 +1,26 @@
+{
+    "posts": [
+        {
+            "title": "",
+            "description": "",
+            "date": "24/11/2025",
+            "route": "test",
+            "path": "/src/posts/001_first-post",
+            "tag": ["riscv", "isa", "ca"]
+        }
+    ],
+    "tags": {
+        "riscv": {
+            "br": "riscv",
+            "en": "riscv"
+        },
+        "isa": {
+            "br": "isa",
+            "en": "isa"
+        },
+        "ca": {
+            "br": "arquitetura de computadores",
+            "en": "computer architecture"
+        }
+    }
+}

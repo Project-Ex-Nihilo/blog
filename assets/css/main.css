@@ -1,0 +1,155 @@
+:root {
+    --gray-blue: #6F8AB7;
+    /* --gray: #788AA3; */
+    --gray-main: #A5ABAF;
+    --black-main: #292929;
+    --red-pink: #FF1053;
+    --white-main: #F7F7F9;
+    --orange-main: #D36135;
+    --yellow-main: #FADF7F;
+    --app-width: 60vw;
+    --menu-items-width: 60%;
+    --site-title-width: 40%;
+    /* #6E8898 */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border: none;
+}
+
+h1 {
+    all: unset;
+}
+
+strong {
+    all: unset;
+}
+
+hr {
+    height: 2px;
+    background-color: var(--gray-main);
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+body {
+    font-family: "JetBrains Mono", monospace;
+    background: var(--black-main);
+    color: var(--white-main);
+}
+
+#app {
+    max-width: var(--app-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#top-nav {
+    display: flex;
+    align-items: center;
+    height: 10vh;
+}
+
+#top-nav li {
+    list-style-type: none;
+}
+
+#top-nav a {
+    text-decoration: none;
+    color: var(--white-main);
+}
+
+#top-nav a:hover {
+    color: var(--gray-main);
+}
+
+.menu-items {
+    display: flex;
+    width: var(--menu-items-width);
+    justify-content: space-evenly;
+}
+
+.site-title {
+    width: var(--site-title-width);
+}
+
+.site-title a {
+    color: var(--orange-main) !important;
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.site-title a:hover {
+    color: var(--yellow-main) !important;
+}
+
+#content-container {
+    min-height: 80vh;
+}
+
+#main-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+    font-size: 0.7rem;
+}
+
+.post-title {
+    color: var(--orange-main);
+    font-weight: 900;
+    font-size: 1.5rem;
+}
+
+.post-meta {
+    font-size: 0.8rem;
+}
+
+.menu-hamburger {
+    display: none;
+}
+
+.menu-hamburger {
+    /* display: block; */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--black-main);
+    opacity: 0.8;
+    z-index: 9999;
+}
+
+@media (max-width: 1280px) {
+    :root {
+        --app-width: 75vw;
+    }
+}
+
+@media (max-width: 1024px) {
+    :root {
+        --app-width: 85vw;
+        --menu-items-width: 50%;
+        --site-title-width: 50%;
+    }
+}
+
+@media (max-width: 820px) {
+    :root {
+        --app-width: 95vw;
+    }
+}
+
+/* Change top nav to humburger */
+@media (max-width: 768px) {
+    .menu-items {
+        display: none;
+    }
+}
+
+@media (max-width: 390px) {}
