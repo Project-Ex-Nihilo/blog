@@ -1,25 +1,49 @@
 {
     "posts": [
         {
-            "title": "",
-            "description": "",
-            "date": "24/11/2025",
-            "route": "test",
-            "path": "/src/posts/001_first-post",
+            "title": {
+                "pt": "Praesent congue vestibulum enim, sed varius diam maximus id.",
+                "en": "Praesent congue vestibulum enim, sed varius diam maximus id."
+            },
+            "description": {
+                "pt": "",
+                "en": ""
+            },
+            "author": "Hamon-Rá Taveira Guimarães",
+            "reading_time": "0 min",
+            "date": "2025-11-24",
+            "route": "test-post",
+            "path": "/src/posts/000-test",
             "tag": ["riscv", "isa", "ca"]
+        },
+        {
+            "title": {
+                "pt": "Ex-Nihilo Core: construindo um emulador RV32I capaz de bootar Linux",
+                "en": "Ex-Nihilo Core: building a RV32I emulator that boots Linux"
+            },
+            "description": {
+                "pt": "",
+                "en": ""
+            },
+            "author": "Hamon-Rá Taveira Guimarães",
+            "reading_time": "10 min",
+            "date": "2026-01-12",
+            "route": "building-emulator",
+            "path": "/src/posts/001-building-emulator",
+            "tag": ["riscv", "isa", "ca", "c"]
         }
     ],
     "tags": {
         "riscv": {
-            "br": "riscv",
+            "pt": "riscv",
             "en": "riscv"
         },
         "isa": {
-            "br": "isa",
+            "pt": "isa",
             "en": "isa"
         },
         "ca": {
-            "br": "arquitetura de computadores",
+            "pt": "arquitetura de computadores",
             "en": "computer architecture"
         }
     }
