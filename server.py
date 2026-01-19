@@ -17,5 +17,10 @@ class SPARequestHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     with socketserver.TCPServer(("", PORT), SPARequestHandler) as httpd:
+        httpd.timeout = 0.5
         print(f"Starting server at http://localhost:{PORT}")
-        httpd.serve_forever()
+        try:
+            while True:
+                httpd.handle_request()
+        except KeyboardInterrupt:
+            print("\nShutting down server...")
