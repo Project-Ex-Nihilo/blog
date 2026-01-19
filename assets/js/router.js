@@ -17,7 +17,7 @@ function extractLanguage(language) {
 }
 
 const static_routes = {
-    "/": async (language) => { await loadFragmentInto("#content-container", `/src/pages/home_${language}.html`, "/"); },
+    "/": async (language) => { await loadFragmentInto("#content-container", `/src/pages/home_${extractLanguage(language)}.html`, "/"); },
     "/posts": async (language) => { 
         await loadFragmentInto("#content-container", `/src/pages/posts.html`, "/posts");
         const posts_list = document.getElementById("posts-list");
