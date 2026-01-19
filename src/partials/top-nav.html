@@ -1,126 +1,20 @@
 <h1 class="site-title"><a href="/" data-link>Project Ex Nihilo</a></h1>
-<ul class="menu-items">
-    <li><a href="/" data-link>Home</a></li>
-    <li><a href="/post" data-link>Posts</a></li>
-    <li><a href="/about" data-link>About</a></li>
-    <li><a href="/contact" data-link>Contact</a></li>
-</ul>
-<div class="menu-hamburger">
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
-
-<!-- Here is a clean, simple, modern hamburger menu with:
-
-✅ A 3-bar hamburger icon
-✅ Smooth animation (hamburger → X)
-✅ Click-to-open mobile menu
-✅ Pure HTML + CSS + JS (no frameworks)
-
-✅ Full Working Example
-HTML
-<header class="header">
-  <h1 class="site-title"><a href="/" data-link>Project Ex Nihilo</a></h1>
-
-  <nav class="menu-items">
+<div class="menu-items">
+  <nav class="nav-menu" id="nav-menu">
     <a href="/" data-link>Home</a>
-    <a href="/post" data-link>Posts</a>
+    <a href="/posts" data-link>Posts</a>
     <a href="/about" data-link>About</a>
     <a href="/contact" data-link>Contact</a>
   </nav>
-
-  <div class="menu-hamburger">
-    <span></span>
-    <span></span>
-    <span></span>
+  <nav class="nav-menu-hamburger" id="nav-menu-hamburger" data-toggle="hamburger">
+    <a href="/" data-link>Home</a>
+    <a href="/posts" data-link>Posts</a>
+    <a href="/about" data-link>About</a>
+    <a href="/contact" data-link>Contact</a>
+  </nav>
+  <div class="hamburger" id="hamburger" data-toggle="hamburger">
+      <span id="hamburger-span" data-toggle="hamburger"></span>
+      <span id="hamburger-span" data-toggle="hamburger"></span>
+      <span id="hamburger-span" data-toggle="hamburger"></span>
   </div>
-</header>
-
-CSS
-/* --- Base styles --- */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  position: relative;
-}
-
-.menu-items {
-  display: flex;
-  gap: 20px;
-}
-
-.menu-items a {
-  text-decoration: none;
-  color: black;
-  font-size: 18px;
-}
-
-/* --- Hamburger icon (hidden on desktop) --- */
-.menu-hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  cursor: pointer;
-}
-
-.menu-hamburger span {
-  width: 28px;
-  height: 3px;
-  background: black;
-  transition: 0.3s;
-}
-
-/* --- MOBILE --- */
-@media (max-width: 768px) {
-
-  .menu-items {
-    display: none;
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 250px;
-    background: white;
-    flex-direction: column;
-    padding: 80px 20px;
-    gap: 30px;
-    box-shadow: -3px 0 10px rgba(0,0,0,0.2);
-    z-index: 9998;
-    transform: translateX(100%);
-    transition: 0.3s ease;
-  }
-
-  .menu-items.open {
-    transform: translateX(0);
-  }
-
-  .menu-hamburger {
-    display: flex;
-    z-index: 9999;
-  }
-
-  /* Hamburger → X animation */
-  .menu-hamburger.active span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-  }
-  .menu-hamburger.active span:nth-child(2) {
-    opacity: 0;
-  }
-  .menu-hamburger.active span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
-  }
-}
-
-JavaScript (for the toggle)
-<script>
-const hamburger = document.querySelector('.menu-hamburger');
-const menu = document.querySelector('.menu-items');
-
-hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('active');
-  menu.classList.toggle('open');
-});
-</script> -->
+</div>

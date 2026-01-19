@@ -1,0 +1,436 @@
+<article class="post">
+    <header class="post-header">
+        <h1 class="post-title" id="post-title"></h1>
+        <div class="post-meta">
+            <span id="post-published">Publicado em <time id="post-published-date"></time></span>
+            <span>.</span>
+            <span id="post-author">por <a href="/about" class="blog-link" id="post-author-name" data-link></a></span>
+            <span id="post-reading-time" style="display: block;">Tempo de Leitura: <span id="post-read-time"></span></span>
+        </div>
+    </header>
+    <hr>
+    <section class="post-content">
+        <p>Ex-Nihilo Core é um emulador RISC-V: um sistema RV32, escrito em C portátil (C17),
+            construído passo a passo até conseguir rodar software real, incluindo um fluxo de boot compatível com Linux.</p>
+        <br>
+        <p>Isso não é um simulador cycle-accurate. Eu penso nele assim:</p>
+        <br>
+        <p class="quote">Qual é o menor computador possível que eu consigo implementar, e que se comporta corretamente?”</p>
+        <br>
+        <p>Correção primeiro, performance depois.</p>
+
+        <p>Por quê? Porque “quase certo” é o que decide se o software real roda ou não. E porque esse
+            emulador não é só um projeto de software: ele é a base de um objetivo maior de longo prazo,
+            entender a arquitetura a fundo o suficiente para, eventualmente, implementar minha própria
+            CPU RISC-V em um FPGA e dar boot no Linux nela também.</p>
+
+        <br>
+        <header class="sub-title">Por que eu fiz isso (o motivo de verdade)</header>
+        <br>
+
+        <p>Eu comecei esse projeto numa fase em que eu estava pra baixo e precisava de algo que me desse
+            propósito e um motivo concreto para continuar avançando todos os dias.</p>
+        <br>
+        <p>Eu poderia ter feito “mais um app”, mas eu queria algo que não dá pra fingir: um projeto onde o
+            progresso é real, dá pra medir, e te cobra de volta quando você erra.</p>
+        <br>
+        <p class="quote">Eu queria um projeto que não deixa você mentir.</p>
+        <br>
+        <p>Ler PDFs da ISA é legal. Mas na primeira vez que você roda testes oficiais, você percebe que o
+            seu cérebro vinha ignorando silenciosamente detalhes como:</p>
+        <ul class="grid-list-ul">
+            <li>Extensão de sinal (o vilão eterno)</li>
+            <li>Imediatos esquisitos</li>
+            <li>Loads desalinhados</li>
+            <li>Branch targets (para onde o jump vai)</li>
+            <li>Controle do PC durante traps</li>
+            <li>CSR edge cases</li>
+        </ul>
+        <br>
+        <p>Emulação é onde esses detalhes deixam de ser “teoria” e viram bugs com nome e sobrenome. E é exatamente por isso que é interessante.</p>
+        <br>
+        <p>Meu ciclo virou:</p>
+        <br>
+        <p class="quote">implementar uma feature → rodar testes → corrigir até ficar certo → ir para o próximo passo</p>
+
+        <br>
+        <header class="sub-title">O que esse emulador suporta (agora)</header>
+        <br>
+
+        <p>A base é RV32I (ISA base de 32 bits), mais um conjunto de extensões que o software real espera.</p>
+        <ul class="grid-list-ul">
+            <li>ISA base: RV32I</li>
+            <li>Extensões: M, Zicsr, Zifencei, Zalrsc, Zaamo</li>
+            <li>Modos de privilégio: M/S/U (traps + returns + fluxo de CSRs)</li>
+            <li>Modelo de plataforma: um barramento de memória que roteia RAM vs MMIO (UART + timer, etc.)</li>
+            <li>Debug: tracing/log opcional por instrução</li>
+            <li>Objetivo: dar boot no kernel Linux, e eu usei objetivos menores, como RTOS, para auxiliar na jornada</li>
+        </ul>
+        <br>
+        <p class="quote">Por enquanto, sem instruções comprimidas. Eu estou deixando a extensão C de fora porque ela complica
+            o decode e o avanço do PC, mas é algo que eu quero resolver mais pra frente.</p>
+        <br>
+        <header class="sub-title">O caminho que eu segui (como isso cresceu com o tempo)</header>
+        <br>
+        <p>Esse projeto não começou como “eu vou dar boot no Linux”. Isso teria sido maluquice.</p>
+        <br>
+        <p>Começou assim: eu quero um caminho correto de decode + execute.</p>
+        <br>
+        <p>Aí a realidade bateu: quando você já tem “algumas instruções rodando”, você percebe que “dar boot no
+            Linux” não é um passo gigante, é uma escada com vários degraus.</p>
+        <br>
+        <p>Mais ou menos a progressão que funcionou pra mim foi:</p>
+        <ol class="grid-list-ol">
+            <li>Começar pelo decode
+                <ul class="grid-list-ul">
+                    <li>Implementar os formatos de decode (R/I/S/B/U/J).</li>
+                    <li>Se o decode estiver errado, tudo fica errado, e você perde tempo debugando fantasmas.</li>
+                </ul>
+            </li>
+            <li>Estabilizar a ISA base
+                <ul class="grid-list-ul">
+                    <li>Loads/stores (tamanhos + extensão de sinal/zero).</li>
+                    <li>Branches/jumps</li>
+                    <li>A disciplina de “o PC anda corretamente”.</li>
+                </ul>
+            </li>
+            <li>Os testes viram "absoluto"
+                <ul class="grid-list-ul">
+                    <li>Eu usei casos de testes oficiais para me dizer o que estava errado, em vez de confiar nas minhas suposições.</li>
+                    <li>Passar nos testes virou a definição de “pronto”.</li>
+                    <li>Passar no meu primeiro teste oficial (rv32ui-p-add) foi um marco real, porque foi o primeiro momento de “estou fazendo a coisa certa”.</li>
+                </ul>
+            </li>
+            <li>Linux era grande demais (então eu reduzi o problema)
+                <ul class="grid-list-ul">
+                    <li>Em vez de ir direto pro Linux, eu usei alvos menores primeiro.</li>
+                    <li>FreeRTOS e Zephyr são ótimas “camadas intermediárias” porque forçam interrupções,
+                        timers e comportamento básico da plataforma sem exigir um ecossistema Linux completo.</li>
+                    <li>Eles me ajudaram a amadurecer o modelo da plataforma antes do salto pro Linux.</li>
+                </ul>
+            </li>
+            <li>OpenSBI
+                <ul class="grid-list-ul">
+                    <li>Esse foi o momento em que transições de modo, regras de trap/return e comportamento de CSRs deixaram de ser “legal ter”.</li>
+                    <li>Firmware é exigente, e tem que ser.</li>
+                </ul>
+            </li>
+            <li>Boot do Linux
+                <ul class="grid-list-ul">
+                    <li>A partir daí, Linux vira o que ele realmente é, um teste de integração de correção da ISA, fluxo de privilégio, MMIO, traps e tempo.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <br>
+        <header class="sub-title">O modelo mental: que “máquina” eu estou emulando</header>
+        <br>
+        <p>Eu tento manter o “hardware” bem concreto na cabeça, o que isso significa:</p>
+        <ul class="grid-list-ul">
+            <li>32 registradores inteiros (x0..x31, com x0 sempre 0)</li>
+            <li>Program counter (PC)</li>
+            <li>Nível de privilégio atual (M/S/U)</li>
+            <li>CSRs (o suficiente pra traps/interrupções/boot do SO)</li>
+            <li>Um barramento:</li>
+            <ul class="grid-list-ul">
+                <li>RAM</li>
+                <li>Dispositivos MMIO (UART, timer, etc.)</li>
+            </ul>
+        </ul>
+        <br>
+        <p>Se você consegue visualizar esse diagrama, o resto do projeto basicamente vira: fazer cada bloco se comportar como a especificação espera.</p>
+
+        <br>
+        <header class="sub-title">O coração de tudo: fetch → decode → execute (repete)</header>
+        <br>
+        <p>No centro está o loop clássico do emulador. Ele parece simples… até deixar de ser.</p>
+        <br>
+        <pre><code class="language-wren">
+algorithm fetch-decode-execute loop is
+    input: CPU state cpu, bus bus, trace flag trace
+    output: updated CPU state (until halted)
+
+    while cpu is not halted do
+        inst ← read_u32(bus, cpu.pc)
+
+        d ← decode(inst) // extrair os campos (R/I/S/B/U/J)
+        r ← execute(cpu, d, bus) // updates regs/memory/csrs and pc+4 ou trap
+
+        advance_time(bus, cpu, r) // e.g., mtime += Δ; update time
+
+        if r indicates a trap then
+            enter_trap(cpu, r.cause)
+        else
+            cpu.pc ← r.next_pc
+
+        if trace is enabled then
+            log_step(cpu, inst)
+        </code></pre>
+        <br>
+        <p>Esse fluxo cabe em um guardanapo, mas engloba tudo:</p>
+        <ul class="grid-list-ul">
+            <li>Decode correto de imediatos</li>
+            <li>Loads/stores (tamanho + extensão de sinal/zero)</li>
+            <li>Alvos de branch e jump</li>
+            <li>Traps, CSRs e transições de privilégio</li>
+            <li>“Tempo” (mesmo um modelo simples vira importante quando o software depende dele)</li>
+        </ul>
+
+        <br>
+        <header class="sub-title">Decode: onde bugs gostam de morar</header>
+        <br>
+        <p>Eu faço questão de enfatizar isso porque foi uma grande lição pra mim:</p>
+        <br>
+        <p class="quote">Se o decode estiver errado, você não tem “algumas instruções erradas”. Você tem um universo errado.</p>
+        <br>
+        <p>Por isso eu comecei por aqui e tratei como sagrado:</p>
+        <ul class="grid-list-ul">
+            <li>Centralizar a lógica de decode</li>
+            <li>Extrair campos com clareza (rd/rs1/rs2/funct3/funct7/imm)</li>
+            <li>Reconstruir imediatos de forma explícita e testar isso</li>
+            <li>Quando o decode estabiliza, o execute fica legível. E quando o execute é legível, dá pra debugar de verdade.</li>
+            <li>Logo no início eu implementei decode limpo pros formatos base: R/I/S/B/U/J.</li>
+        </ul>
+        <br>
+        <p class="quote">Se você é estudante de CC: é aqui que “sopa de bits” vira CPU de verdade.</p>
+        <p class="quote">Se você é de hardware: você já sabe que os imediatos parecem desenhados por alguém que ama mux (porque foram).</p>
+        <br>
+        <p>Minha regra aqui foi: manter o decode centralizado para que o execute leia como “o que a instrução significa”,
+            e não como “como os bits foram colados”.</p>
+
+        <br>
+        <header class="sub-title">Memória: não é só RAM, MMIO é onde a coisa fica séria</header>
+        <br>
+        <p>Em vez de deixar a CPU ler/escrever arrays direto, o emulador tem um barramento:</p>
+        <ul class="grid-list-ul">
+            <li>Se o endereço cair em RAM → lê/escreve RAM.</li>
+            <li>Se o endereço cair numa faixa MMIO → encaminha pro dispositivo.</li>
+        </ul>
+        <br>
+        <p>Isso ajuda bastante porque:</p>
+        <ul class="grid-list-ul">
+            <li>A lógica da CPU fica limpa</li>
+            <li>Os dispositivos podem evoluir separados</li>
+            <li>O emuladoor começa a aparecer como um hardware de verdade</li>
+        </ul>
+
+        <br>
+        <header class="sub-title">UART: o momento em que a máquina ganha vida</header>
+        <br>
+        <p>A primeira vez que o emulador imprime texto, você não esquece.</p>
+        <br>
+        <p>Eu implementei uma interface MMIO estilo UART (normalmente algo como 0x10000000) para capturar a saída do código rodando dentro do emulador.</p>
+        <br>
+        <p>Por que UART primeiro?</p>
+        <ul class="grid-list-ul">
+            <li>Modelo simples de dispositivo</li>
+            <li>Observabilidade imediata</li>
+            <li>É exatamente o que firmware e kernel usam pra logs iniciais</li>
+            <li>Quando tudo está quebrado, UART é como o sistema te conta onde morreu</li>
+        </ul>
+        <br>
+        <p>Essa saída no UART foi o primeiro momento em que eu senti: “ok… isso está virando um computador.”</p>
+
+        <br>
+        <header class="sub-title">Tempo: mtime / mtimecmp (estilo CLINT)</header>
+        <br>
+        <p>Mesmo um emulador “funcional” precisa de noção de tempo, porque o software espera que o tempo exista.</p>
+        <p>Então a plataforma inclui um timer estilo CLINT para mtime e mtimecmp.</p>
+        <p>Mas o detalhe importante é: isso não é “relógio de parede”.</p>
+        <p>É tempo determinístico, do tipo que dá pra reproduzir. Isso foi muito bom pra debugging.</p>
+        <br>
+        <p>Quando o emulador loga uma instrução, eu posso incluir um contador de tempo (mtime).
+            Então uma falha deixa de ser “crashou em algum momento” e vira: “crashou no PC X no tempo T”.</p>
+        <br>
+        <p>Isso torna bugs reproduzíveis. Dá pra rodar o mesmo payload e obter a mesma linha do tempo de novo e de novo.
+            Na prática, isso transformou “dor aleatória” em “dor debugável”.</p>
+        <br>
+        <p>Meu objetivo aqui não é timing perfeito. É comportamento consistente:</p>
+        <ul class="grid-list-ul">
+            <li>Logs determinísticos</li>
+            <li>Comportamento básico de interrupção de timer</li>
+            <li>Realismo suficiente pra OS/RTOS</li>
+        </ul>
+
+        <br>
+        <header class="sub-title">Modo Privilegiado (a parte difícil)</header>
+        <br>
+        <p>Aqui é onde a coisa ficou séria.</p>
+        <p>Dar boot em software sério te obriga a implementar a parte privilegiada. Não tem como fugir disso. Ex-Nihilo Core roda código em: M/S/U mode.</p>
+        <br>
+        <p>Essa foi a parte onde eu mais apanhei, porque o fluxo de trap não é intuitivo no começo. E ele é o coração do sistema:</p>
+        <ul class="grid-list-ul">
+            <li>Você pode executar aritmética correta e ainda assim falhar tudo, porque traps decidem se a CPU volta pro lugar certo, no modo certo, com o estado certo</li>
+        </ul>
+        <br>
+        <p>Isso significa implementar o fluxo de trap/return:</p>
+        <ul class="grid-list-ul">Trap entry (o “deu ruim” controlado)
+            <li>Detectar exceção/interrupção</li>
+            <li>Escrever CSRs de trap (*cause, *epc, *tval quando necessário)</li>
+            <li>Trocar o nível de privilégio</li>
+            <li>Salta pro vetor de trap</li>
+        </ul>
+        <br>
+        <ul class="grid-list-ul">Trap return (desfazendo o “deu ruim”)
+            <li>Restaurar privilégio com base nos bits de status</li>
+            <li>Restaurar o estado anterior antes da interrupção</li>
+            <li>Retoma execução a partir de *epc</li>
+        </ul>
+        <br>
+        <p>É aqui que “dá boot no Linux” deixa de ser slogan e vira checklist.</p>
+
+        <br>
+        <header class="sub-title">Testes: É muito mais, então eu pedi ajuda</header>
+        <br>
+        <p>Eu trato testes como lei.</p>
+        <br>
+        <p>A abordagem do projecto é basicamente:</p>
+        <ul class="grid-list-ul">
+            <li>Implementar algo pequeno</li>
+            <li>Rodar os casos de testes oficiais</li>
+            <li>Corrigir os casos estranhos até bater com o esperado</li>
+            <li>Seguir em frente</li>
+        </ul>
+        <br>
+        <p>Essa disciplina moldou o código todo:</p>
+        <ul class="grid-list-ul">
+            <li>Debug-friendly por design</li>
+            <li>Tracing não é opcional emocionalmente (salva sua sanidade)</li>
+            <li>Correção antes de performance (por enquanto)</li>
+        </ul>
+        <br>
+        <p>A primeira vez que eu passei nos casos de testes oficiais foi incrivelmente um alívio, porque eu pensei “agora eu consigo”.</p>
+        <br>
+        <p class="quote">Eu valido o core usando riscv-tests e os casos de teste do RISC-V Arch Test via RISCOF, começando por rv32ui-p-add e avançando pelo conjunto completo.</p>
+
+        <br>
+        <p class="sub-title">Boot do Linux: o que isso realmente quer dizer</p>
+        <br>
+        <p>Para esse emulador, “Linux-capable” significa que eu consigo rodar um fluxo de boot realista que espera
+            uma plataforma “de verdade” (mesmo que minimalista):</p>
+        <br>
+        <ol class="grid-list-ol">
+            <li>Estágio de firmware (OpenSBI, M-mode)
+                <ul class="grid-list-ul">
+                    <li>No meu setup, o OpenSBI é carregado como “bios” e roda primeiro em machine mode.
+                        Nesse nível, o firmware espera que as partes privilegiadas da CPU estejam corretas:
+                        acessos a CSR, regras de trap entry/return e transições limpas de privilégio.
+                        Uma parte essencial aqui é passar informações de boot do jeito que o OpenSBI entende.
+                        Na prática isso significa: o emulador coloca metadados de boot e o device tree em endereços
+                        conhecidos (por exemplo, kernel em 0x80400000 e o device tree blob em 0x82000000 no meu fluxo atual),
+                        e o OpenSBI usa isso pra entregar o controle pro próximo estágio.</li>
+                </ul>
+            </li>
+            <li>Device tree (DTB)
+                <ul class="grid-list-ul">
+                    <li>O Linux não consegue detectar o hardware sozinho. Ele precisa de uma device tree que descreva o que existe:
+                        memória, uma UART de console, temporizadores/interrupções e outros dispositivos. O emulador carrega o
+                        device tree blob (DTB) na memória do software e passa seu endereço físico para o kernel usando a convenção
+                        padrão de boot (registrador a1).</li>
+                </ul>
+            </li>
+            <li>Estágio do kernel (S-mode)
+                <ul class="grid-list-ul">
+                    <li>Depois que o OpenSBI prepara as coisas, o Linux começa em modo supervisor. A partir daqui, o kernel usa
+                        chamadas SBI (via ecalls) para “ajuda”, depende de traps funcionando corretamente, e espera que os dispositivos
+                        respondam via MMIO. Aqui é onde “quase certo” para de funcionar.</li>
+                </ul>
+            </li>
+            <li>Saída de console (UART via MMIO)
+                <ul class="grid-list-ul">
+                    <li>Boot do Linux só é debugável se você consegue ver logs. Por isso UART não é opcional. A saída de early boot
+                        é a melhor forma que você pode ter, e por outro lado é como você confirma que o kernel está funcionando da maneira que deveria.</li>
+                </ul>
+            </li>
+            <li>Tempo e interrupções
+                <ul class="grid-list-ul">
+                    <li>O Linux espera um comportamento de timer consistente. O emulador não precisa de ciclos perfeitos, mas ele
+                        precisa de avanços determinísticos do tempo, comportamento correto da comparação entre mtimecmp e mtime e
+                        caminhos de interrupção/trap que não corrompam os estados. Se as interrupções de timer estiverem erradas,
+                        o kernel vai travar ou se comportar de um jeito estranho que é muito difícil de debugar.</li>
+                </ul>
+            </li>
+        </ol>
+        <br>
+        <p>É por isso que eu chamo Linux de “um teste de integração para tudo”:</p>
+        <br>
+        <p class="quote">correção da ISA + CSRs + fluxo de privilégio + traps + MMIO + tempo.</p>
+        <br>
+        <p>Em outras palavras:</p>
+        <ol class="grid-list-ol">
+            <li>A imagem do kernel é carregada corretamente
+                <ul class="grid-list-ul">
+                    <li>O emulador coloca o kernel no endereço físico esperado e inicia a execução através do fluxo normal de boot (firmware → handoff pro supervisor).</li>
+                </ul>
+            </li>
+            <li>A inicialização inicial do kernel roda
+                <ul class="grid-list-ul">
+                    <li>O kernel consegue descomprimir/realocar, inicializa o estado da CPU, monta estruturas básicas de
+                        gerenciamento de memória e inicializa subsistemas centrais necessários para o começo do boot.</li>
+                </ul>
+            </li>
+            <li>O kernel consegue interpretar o device tree
+                <ul class="grid-list-ul">
+                    <li>O Linux lê o DTB e usa isso pra descobrir RAM, UART, fontes de timer e layout da plataforma. Se o DTB estiver errado, o Linux normalmente morre muito cedo.</li>
+                </ul>
+            </li>
+            <li>O kernel consegue imprimir logs de boot via UART do emulador
+                <ul class="grid-list-ul">
+                    <li>Esse é o “batimento”: você vê mensagens reconhecíveis do boot do Linux. Isso confirma que o caminho de execução da CPU,
+                        a lógica de trap/return e o comportamento MMIO do UART estão corretos o suficiente para rodar código real do kernel.</li>
+                </ul>
+            </li>
+            <li>O kernel chega num ponto estável
+                <ul class="grid-list-ul">
+                    <li>Dependendo da sua configuração, esse “ponto estável” pode ser:</li>
+                    <ul>
+                        <li>Chegar em start_kernel() e rodar bem dentro do early init</li>
+                        <li>Ir longe o suficiente pra tentar montar um root filesystem</li>
+                        <li>Ou parar com uma mensagem clara do tipo “no rootfs / no init”.</li>
+                    </ul>
+                </ul>
+            </li>
+        </ol>
+        <br>
+        <p>Na prática isso significa: o emulador consegue executar código real do kernel longe o bastante pra ele inicializar,
+            descobrir a máquina via DTB e emitir logs reais via UART, mesmo que ainda não exista userland.</p>
+        <br>
+        <div class="post-image">
+            <img src="/assets/img/linux-boot.gif" class="default-center-img" alt="OpenSBI + Linux Kernel">
+        </div>
+        <br>
+        <p class="quote">OpenSBI + Kernel booting</p>
+        <p class="quote">O processo morre depois que o kernel tenta inicializar o userland. Ele não encontra nenhum initramfs.</p>
+        <br>
+        <header class="sub-title">O que eu tirei disso (até agora)</header>
+        <br>
+        <p>Esse projeto me deu uma compreensão real de:</p>
+        <ul class="grid-list-ul">
+            <li>O que uma ISA realmente especifica (e o que ela não especifica)</li>
+            <li>Por que os imediatos têm aquelas formas</li>
+            <li>Como software real vai estressar todos os casos que você esqueceu</li>
+            <li>Por que uma implementação mínima pode ser poderosa quando o comportamento é correto</li>
+        </ul>
+        <br>
+        <p>E, sendo bem sincero: deu a prova pra mim mesmo de que eu consigo construir algo grande, pedaço por pedaço, e chegar até o fim.</p>
+
+        <br>
+        <header class="sub-title">Próximos passos</header>
+        <br>
+        <p>O projeto continua focado na correção. Performance pode vir depois.</p>
+        <br>
+        <p>Coisas que eu quero atacar a seguir:</p>
+        <ul class="grid-list-ul">
+            <li>Mais cobertura de testes oficiais (pegar casos estranhos)</li>
+            <li>Ajustar ainda mais traps/CSRs e precisão dos dispositivos</li>
+            <li>Deixar o fluxo OpenSBI/DTB/UART mais liso</li>
+            <li>Rodar cargas do Linux mais fundo em U-mode (não só comportamento de early boot)</li>
+            <li>Criar uma experiência mais “debugger-like”. Por exemplo, transmitir estado de trace/debug pela rede,
+                pra eu inspecionar execução ao vivo sem afogar em arquivos de log</li>
+        </ul>
+        <br>
+        <p>Mais pra frente: features mais concretas do OS (MMU/page tables) e um comportamento da plataforma mais completo.</p>
+        <br>
+        <p>Você pode encontrar o repositório em <a class="blog-link" href="https://github.com/Project-Ex-Nihilo/Ex-Nihilo-Core" target="_blank">Ex-Nihilo-Core</a></p>
+    </section>
+</article>
