@@ -18,8 +18,8 @@
         },
         {
             "title": {
-                "pt": "Ex-Nihilo Core: construindo um emulador RV32I capaz de bootar Linux",
-                "en": "Ex-Nihilo Core: building a RV32I emulator that boots Linux"
+                "pt": "Ex-Nihilo Core: construindo um emulador RV32I capaz de bootar o Kernel do Linux",
+                "en": "Ex-Nihilo Core: building a RV32I emulator that boots Linux Kernel"
             },
             "description": {
                 "pt": "",
