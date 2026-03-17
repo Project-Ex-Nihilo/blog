@@ -1,0 +1,36 @@
+<article class="post">
+    <header class="post-header">
+        <h1 class="post-title" id="post-title"></h1>
+        <div class="post-meta">
+            <span id="post-time">Published in <time id="post-published-date"></time></span>
+            <span>.</span>
+            <span id="post-author">By <a href="/about" class="blog-link" id="post-author-name" data-link></a></span>
+            <span id="post-reading-time" style="display: block;">Reading Time: <span id="post-read-time"></span></span>
+        </div>
+    </header>
+    <hr>
+    <section class="post-content">
+        <p>While writing my Typed INI parser, I started thinking about optimization.</p>
+        <br>
+        <p>Many people think optimized code is just smaller code. And sure, sometimes simplifying code does improve performance.
+            If the CPU does less work and still gives the same result, that is optimization.</p>
+        <p>But fewer lines alone do not mean better code.</p>
+        <br>
+        <p>A parser made this very clear to me. A parser has one main job: read the input and understand it.
+            It does not matter if the file has 100 characters or 1,000,000 characters, the parser still needs to go from start to finish,
+            character by character, interpreting what it sees.</p>
+        <br>
+        <p class="quote">The work exists no matter how pretty the code looks.</p>
+        <br>
+        <p>That is the point, optimization is not about pretending the work is gone. It is about avoiding unnecessary work on top of what already must be done.</p>
+        <p>For a parser, that might mean fewer allocations, fewer copies, less rescanning, and clearer control flow.
+            The parser still has to read the file, but it can do that in a way that wastes less time and less effort.</p>
+        <br>
+        <header class="sub-title">So what is truly optimized code?</header>
+        <br>
+        <p>To me, optimized code is code that understands the real cost of the problem. It respects what is unavoidable, and removes what is not necessary.</p>
+        <p>Less code may come with that.</p>
+        <br>
+        <p class="quote">But real optimization is about less waste, not just fewer lines.</p>
+    </section>
+</article>
