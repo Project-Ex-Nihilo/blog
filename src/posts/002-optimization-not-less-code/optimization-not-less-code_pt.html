@@ -1,0 +1,37 @@
+<article class="post">
+    <header class="post-header">
+        <h1 class="post-title" id="post-title"></h1>
+        <div class="post-meta">
+            <span id="post-published">Publicado em <time id="post-published-date"></time></span>
+            <span>.</span>
+            <span id="post-author">por <a href="/about" class="blog-link" id="post-author-name" data-link></a></span>
+            <span id="post-reading-time" style="display: block;">Tempo de Leitura: <span id="post-read-time"></span></span>
+        </div>
+    </header>
+    <hr>
+    <section class="post-content">
+        <p>Codando meu parser Typed INI, comecei a pensar sobre otimização.</p>
+        <br>
+        <p>Muita gente acha que código otimizado é simplesmente menos código.
+            E sim, às vezes simplificar o código realmente melhora a performance.
+            Se a CPU faz menos trabalho e ainda entrega o mesmo resultado, isso é otimização.</p>
+        <p>Mas ter menos linhas, por si só, não significa código melhor.</p>
+        <br>
+        <p>O parser deixou isso muito claro. O mesmo tem uma função principal: ler a entrada e interpretá-la.
+            Não importa se o arquivo tem 100 caracteres ou 1.000.000 de caracteres, o parser ainda precisa ir do começo ao fim,
+            caractere por caractere, interpretando o que encontra.</p>
+        <br>
+        <p class="quote">O trabalho existe, não importa o quão bonito o código pareça.</p>
+        <br>
+        <p>E esse é o ponto, otimização não é fingir que o trabalho desapareceu. Otimização é evitar trabalho desnecessário em cima daquilo que precisa ser feito.</p>
+        <p>No caso de um parser, isso pode significar menos alocações, menos cópias, menos reprocessamento da mesma informação e um fluxo de controle mais claro.
+            O parser ainda precisa ler o arquivo, mas pode fazer isso de um jeito que desperdice menos tempo e menos esforço.</p>
+        <br>
+        <header class="sub-title">Então, o que é um código realmente otimizado?</header>
+        <br>
+        <p>Para mim, código otimizado é o código que entende o custo real do problema. Ele respeita o que é inevitável e elimina o que não é necessário.</p>
+        <p>Escrever menos código pode vir como consequência disso.</p>
+        <br>
+        <p class="quote">Mas otimização de verdade tem mais a ver com menos desperdício do que simplesmente com menos linhas.</p>
+    </section>
+</article>

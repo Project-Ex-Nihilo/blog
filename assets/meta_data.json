@@ -31,6 +31,22 @@
             "route": "building-emulator",
             "path": "/src/posts/001-building-emulator",
             "tag": ["riscv", "isa", "ca", "c"]
+        },
+        {
+            "title": {
+                "pt": "Otimização Não É Só Escrever Menos Código",
+                "en": "Optimization Is Not Just Less Code"
+            },
+            "description": {
+                "pt": "",
+                "en": ""
+            },
+            "author": "Hamon-Rá Taveira Guimarães",
+            "reading_time": "2 min",
+            "date": "2026-03-17",
+            "route": "optimization-not-less-code",
+            "path": "/src/posts/002-optimization-not-less-code",
+            "tag": ["programming", "algorithm"]
         }
     ],
     "tags": {
