@@ -6,11 +6,12 @@
                 "en": "Praesent congue vestibulum enim, sed varius diam maximus id."
             },
             "description": {
-                "pt": "",
-                "en": ""
+                "pt": "Post de teste usado durante o desenvolvimento do blog.",
+                "en": "Test post used while developing the blog."
             },
             "author": "Hamon-Rá Taveira Guimarães",
             "reading_time": "0 min",
+            "draft": true,
             "date": "2025-11-24",
             "route": "test-post",
             "path": "/src/posts/000-test",
@@ -22,8 +23,8 @@
                 "en": "Ex-Nihilo Core: building a RV32I emulator that boots Linux Kernel"
             },
             "description": {
-                "pt": "",
-                "en": ""
+                "pt": "Construindo um emulador RV32I capaz de inicializar OpenSBI e o Kernel do Linux.",
+                "en": "Building an RV32I emulator capable of booting OpenSBI and the Linux kernel."
             },
             "author": "Hamon-Rá Taveira Guimarães",
             "reading_time": "10 min",
@@ -38,8 +39,8 @@
                 "en": "Optimization Is Not Just Less Code"
             },
             "description": {
-                "pt": "",
-                "en": ""
+                "pt": "Por que otimização envolve mais do que simplesmente escrever menos código.",
+                "en": "Why optimization involves more than simply writing less code."
             },
             "author": "Hamon-Rá Taveira Guimarães",
             "reading_time": "2 min",
@@ -61,6 +62,18 @@
         "ca": {
             "pt": "arquitetura de computadores",
             "en": "computer architecture"
+        },
+        "c": {
+            "pt": "C",
+            "en": "C"
+        },
+        "programming": {
+            "pt": "programação",
+            "en": "programming"
+        },
+        "algorithm": {
+            "pt": "algoritmo",
+            "en": "algorithm"
         }
     }
 }

@@ -22,12 +22,8 @@
     border: none;
 }
 
-h1 {
-    all: unset;
-}
-
 strong {
-    all: unset;
+    font-weight: 700;
 }
 
 hr {
@@ -103,10 +99,15 @@ body {
     gap: 20px;
     align-items: center;
     transition: 0.4s;
+    z-index: 10;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .nav-menu-hamburger.active {
     right: 0;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .site-title {
@@ -157,6 +158,15 @@ body {
     display: none;
     margin-left: auto;
     margin-right: auto;
+    padding: 4px;
+    background: transparent;
+    color: inherit;
+}
+
+.hamburger:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--yellow-main);
+    outline-offset: 4px;
 }
 
 .hamburger span {

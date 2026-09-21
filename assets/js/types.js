@@ -2,18 +2,19 @@
 
 /**
  * @typedef {Object} Post
- * @property {{br: string, en: string}} title
- * @property {{br: string, en: string}} description
+ * @property {{pt: string, en: string}} title
+ * @property {{pt: string, en: string}} description
  * @property {string} author
  * @property {string} reading_time
  * @property {string} date
  * @property {string} route
  * @property {string} path
  * @property {string[]} tag
+ * @property {boolean} [draft]
  */
 
 /**
- * @typedef {Object<string, {br: string, en: string}>} TagMap
+ * @typedef {Object<string, {pt: string, en: string}>} TagMap
  */
 
 /**
