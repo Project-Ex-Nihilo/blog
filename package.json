@@ -1,0 +1,12 @@
+{
+    "name": "project-ex-nihilo-blog",
+    "private": true,
+    "scripts": {
+        "serve": "python server.py",
+        "lint": "eslint \"assets/js/*.js\"",
+        "check": "npm run lint && node --check assets/js/app.js && node --check assets/js/router.js"
+    },
+    "devDependencies": {
+        "eslint": "9.39.1"
+    }
+}
