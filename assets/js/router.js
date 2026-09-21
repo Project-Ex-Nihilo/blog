@@ -4,7 +4,8 @@ import {
     getUserLanguage,
     setHistory,
     getUrl,
-    formatDate
+    formatDate,
+    setPageMetadata,
 } from "./app.js";
 
 /**
@@ -12,29 +13,66 @@ import {
  * @returns {string}
  */
 function extractLanguage(language) {
-    if(language == "en-US" || language == "pt-BR") return language.split("-")[0];
+    if (language === "en-US" || language === "pt-BR") {
+        return language.split("-")[0];
+    }
     return "pt";
 }
 
+const page_metadata = {
+    en: {
+        "/": ["Home", "A workshop log about backend engineering, RISC-V, emulation, and Linux."],
+        "/posts": ["Posts", "Technical articles from Project Ex-Nihilo."],
+        "/about": ["About", "About Hamon-Rá and Project Ex-Nihilo."],
+        "/contact": ["Contact", "Contact Hamon-Rá through LinkedIn or GitHub."],
+    },
+    pt: {
+        "/": ["Início", "Um diário sobre backend, RISC-V, emulação e Linux."],
+        "/posts": ["Posts", "Artigos técnicos do Project Ex-Nihilo."],
+        "/about": ["Sobre", "Sobre Hamon-Rá e o Project Ex-Nihilo."],
+        "/contact": ["Contato", "Entre em contato com Hamon-Rá pelo LinkedIn ou GitHub."],
+    },
+};
+
 const static_routes = {
-    "/": async (language) => { await loadFragmentInto("#content-container", `/src/pages/home_${extractLanguage(language)}.html`, "/"); },
-    "/posts": async (language) => { 
-        await loadFragmentInto("#content-container", `/src/pages/posts.html`, "/posts");
+    "/": async (language, signal) =>
+        loadFragmentInto(
+            "#content-container",
+            `/src/pages/home_${extractLanguage(language)}.html`,
+            "/",
+            signal
+        ),
+    "/posts": async (language, signal) => {
+        const loaded = await loadFragmentInto(
+            "#content-container",
+            "/src/pages/posts.html",
+            "/posts",
+            signal
+        );
+        if (!loaded) return false;
+
         const posts_list = document.getElementById("posts-list");
-        
+        if (!posts_list || !Array.isArray(window.metadata?.posts)) return false;
+
         /** @type {Post[]} */
         const posts = window.metadata.posts
-        for(let i = 1; i < posts.length; i++) {
-            const post = posts[i];
+            .filter((post) => !post.draft)
+            .slice()
+            .sort((first, second) => second.date.localeCompare(first.date));
+
+        for (const post of posts) {
             const new_post_element = document.createElement("li");
             const post_date_element = document.createElement("span");
             const post_link_container_element = document.createElement("span");
             const post_link_element = document.createElement("a");
 
             post_date_element.classList.add("post-date");
-            post_date_element.textContent = new Date(post.date).toLocaleDateString(language);
+            post_date_element.textContent = formatDate(post.date, language);
 
-            post_link_element.setAttribute("href", `/post/${post.route}`);
+            post_link_element.setAttribute(
+                "href",
+                `/${language}/post/${post.route}`
+            );
             post_link_element.dataset.link = "";
             post_link_element.classList.add("blog-link");
             post_link_element.textContent = post.title[extractLanguage(language)];
@@ -47,15 +85,33 @@ const static_routes = {
 
             posts_list.appendChild(new_post_element);
         }
+        return true;
     },
-    "/about": async (language) => { await loadFragmentInto("#content-container", `/src/pages/about_${extractLanguage(language)}.html`, "/about"); },
-    "/contact": async (language) => { await loadFragmentInto("#content-container", `/src/pages/contact_${extractLanguage(language)}.html`, "/contact"); }
-}
+    "/about": async (language, signal) =>
+        loadFragmentInto(
+            "#content-container",
+            `/src/pages/about_${extractLanguage(language)}.html`,
+            "/about",
+            signal
+        ),
+    "/contact": async (language, signal) =>
+        loadFragmentInto(
+            "#content-container",
+            `/src/pages/contact_${extractLanguage(language)}.html`,
+            "/contact",
+            signal
+        ),
+};
+
+let active_route_controller;
 
 /**
  * @returns {void}
  */
 async function router() {
+    active_route_controller?.abort();
+    active_route_controller = new AbortController();
+    const { signal } = active_route_controller;
 
     /** @type {MetaData} */
     const metadata = window.metadata;
@@ -63,67 +119,99 @@ async function router() {
     const path = getUrl();
     const raw_language = getUserLanguage();
     const language = extractLanguage(raw_language);
-    if(static_routes[path]) {
-        static_routes[path](raw_language);
+    if (static_routes[path]) {
+        const loaded = await static_routes[path](raw_language, signal);
+        if (loaded && !signal.aborted) {
+            setPageMetadata(...page_metadata[language][path]);
+            window.scrollTo(0, 0);
+        }
         return;
     }
 
-    const postRegex = new RegExp("^\/post\/([a-zA-Z0-9\-]+)$");
+    const postRegex = /^\/post\/([a-zA-Z0-9-]+)$/;
     const slug = path.match(postRegex);
-    if(slug) {
-        const post = metadata.posts.find(p => p.route === slug[1]);
-        if(post) {
+    if (slug && Array.isArray(metadata?.posts)) {
+        const post = metadata.posts.find((candidate) => candidate.route === slug[1]);
+        if (post && !post.draft) {
             const post_path = `${post.path}/${post.route}_${language}.html`;
-            await loadFragmentInto("#content-container", post_path, language);
+            const loaded = await loadFragmentInto(
+                "#content-container",
+                post_path,
+                post.route,
+                signal
+            );
+            if (!loaded || signal.aborted) return;
 
             const post_title = document.getElementById("post-title");
-            post_title.textContent = post.title[language];
+            if (post_title) post_title.textContent = post.title[language];
 
             const post_published_date = document.getElementById("post-published-date");
-            post_published_date.textContent = formatDate(post.date, raw_language);
+            if (post_published_date) {
+                post_published_date.textContent = formatDate(post.date, raw_language);
+                post_published_date.setAttribute("datetime", post.date);
+            }
 
             const post_author_name = document.getElementById("post-author-name");
-            post_author_name.textContent = post.author;
+            if (post_author_name) post_author_name.textContent = post.author;
 
             const post_read_time = document.getElementById("post-read-time");
-            post_read_time.textContent = post.reading_time;
+            if (post_read_time) post_read_time.textContent = post.reading_time;
 
+            setPageMetadata(post.title[language], post.description[language]);
             window.scrollTo(0, 0);
             return;
         }
     }
 
-    await loadFragmentInto("#content-container", `/src/pages/not-found_${language}.html`, "/");
-    window.scrollTo(0, 0);
+    const loaded = await loadFragmentInto(
+        "#content-container",
+        `/src/pages/not-found_${language}.html`,
+        path,
+        signal
+    );
+    if (loaded && !signal.aborted) {
+        setPageMetadata(language === "pt" ? "Página não encontrada" : "Page not found");
+        window.scrollTo(0, 0);
+    }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    await init();
-    router();
+    try {
+        await init();
+        await router();
+    } catch (error) {
+        console.error("Could not initialize the application.", error);
+        const container = document.getElementById("content-container");
+        if (container) container.textContent = "Could not load the site. Please try again.";
+    }
 });
 
-document.body.addEventListener("click", (event) => {
+document.body.addEventListener("click", async (event) => {
 
     const link = event.target.closest("a[data-link]");
-    if(link) {
+    if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
         const href = link.getAttribute("href");
-        if (!href.startsWith("/")) return;
+        if (!href?.startsWith("/")) return;
+        event.preventDefault();
         setHistory(href);
 
         const nav_menu_hamburger = document.getElementById("nav-menu-hamburger");
-        if(nav_menu_hamburger) {
+        if (nav_menu_hamburger) {
             nav_menu_hamburger.classList.remove("active");
+            document
+                .getElementById("hamburger")
+                ?.setAttribute("aria-expanded", "false");
         }
 
-        router();
-        event.preventDefault();
+        await router();
         return;
     }
 
     const toggle_hamburger = event.target.closest("[data-toggle='hamburger']");
-    if(toggle_hamburger) {
+    if (toggle_hamburger) {
         const nav_menu_hamburger = document.getElementById("nav-menu-hamburger");
-        nav_menu_hamburger.classList.toggle("active");
+        const is_active = nav_menu_hamburger?.classList.toggle("active") || false;
+        toggle_hamburger.setAttribute("aria-expanded", String(is_active));
         return;
     }
 });

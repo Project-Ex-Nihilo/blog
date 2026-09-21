@@ -1,20 +1,20 @@
 <h1 class="site-title"><a href="/" data-link>Project Ex Nihilo</a></h1>
 <div class="menu-items">
   <nav class="nav-menu" id="nav-menu">
-    <a href="/" data-link>Home</a>
-    <a href="/posts" data-link>Posts</a>
-    <a href="/about" data-link>About</a>
-    <a href="/contact" data-link>Contact</a>
+    <a href="/" data-link data-label-en="Home" data-label-pt="Início">Home</a>
+    <a href="/posts" data-link data-label-en="Posts" data-label-pt="Posts">Posts</a>
+    <a href="/about" data-link data-label-en="About" data-label-pt="Sobre">About</a>
+    <a href="/contact" data-link data-label-en="Contact" data-label-pt="Contato">Contact</a>
   </nav>
-  <nav class="nav-menu-hamburger" id="nav-menu-hamburger" data-toggle="hamburger">
-    <a href="/" data-link>Home</a>
-    <a href="/posts" data-link>Posts</a>
-    <a href="/about" data-link>About</a>
-    <a href="/contact" data-link>Contact</a>
+  <nav class="nav-menu-hamburger" id="nav-menu-hamburger" aria-label="Mobile navigation">
+    <a href="/" data-link data-label-en="Home" data-label-pt="Início">Home</a>
+    <a href="/posts" data-link data-label-en="Posts" data-label-pt="Posts">Posts</a>
+    <a href="/about" data-link data-label-en="About" data-label-pt="Sobre">About</a>
+    <a href="/contact" data-link data-label-en="Contact" data-label-pt="Contato">Contact</a>
   </nav>
-  <div class="hamburger" id="hamburger" data-toggle="hamburger">
-      <span id="hamburger-span" data-toggle="hamburger"></span>
-      <span id="hamburger-span" data-toggle="hamburger"></span>
-      <span id="hamburger-span" data-toggle="hamburger"></span>
-  </div>
+  <button class="hamburger" id="hamburger" type="button" data-toggle="hamburger" aria-controls="nav-menu-hamburger" aria-expanded="false" aria-label="Toggle navigation">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+  </button>
 </div>
