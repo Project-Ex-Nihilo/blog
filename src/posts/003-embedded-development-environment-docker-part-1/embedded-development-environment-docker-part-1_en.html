@@ -1,0 +1,231 @@
+<article class="post">
+    <header class="post-header">
+        <h1 class="post-title" id="post-title"></h1>
+        <div class="post-meta">
+            <span id="post-time">Published in <time id="post-published-date"></time></span>
+            <span>.</span>
+            <span id="post-author">By <a href="/about" class="blog-link" id="post-author-name" data-link></a></span>
+            <span id="post-reading-time" style="display: block;">Reading Time: <span id="post-read-time"></span></span>
+        </div>
+    </header>
+    <hr>
+    <section class="post-content">
+        <p>Setting up a Docker container is usually the easy part.</p>
+        <br>
+        <p>You create a Dockerfile, perhaps add a Docker Compose configuration, install some packages, and that is mostly it. If the container starts and the compiler is available, the first part of the job is done.</p>
+        <p>The frustrating part is making the entire development loop feel like a single environment when its pieces are scattered across two operating systems and several physical devices.</p>
+        <br>
+        <p>An embedded project is not only source code and a compiler. There is an editor, a build system, a cross-compiler, a debugger, a debug server, a USB probe, drivers, and finally the development board itself. Every piece has to communicate with the next one.</p>
+        <br>
+        <p>Getting each tool to work individually is not necessarily difficult. Getting them to work together without turning the computer into a fragile collection of manually installed tools is a different problem.</p>
+
+        <br>
+        <header class="sub-title">What I want from this environment</header>
+        <br>
+        <p>My goal is to have a development environment that is integrated, automated, and easy to rebuild.</p>
+        <p>More specifically, I want a setup that I can experiment with, change, and occasionally break without being afraid that I will have to wipe my machine and start everything again from scratch.</p>
+        <br>
+        <p class="quote">Breaking things is part of learning, especially when dealing with hardware and unfamiliar tools. I do not want the environment itself to discourage that experimentation.</p>
+        <br>
+        <p>This is one of the main reasons I like using containers.</p>
+        <br>
+        <p>If something inside the environment goes completely wrong, I can stop the container, delete its image and volumes, rebuild it, and return to a known state. I do not have to remember which compiler version I installed six months ago, which environment variables I changed, or which random files I copied into a system directory.</p>
+        <br>
+        <p>There is also a more practical long-term benefit. Eventually, every host machine needs to be formatted, replaced, or migrated. When that happens, I do not want to reconstruct my development environment from memory.</p>
+        <br>
+        <p>Ideally, recovering the project should look something like this:</p>
+        <ol class="grid-list-ol">
+            <li>Clone the repository.</li>
+            <li>Run the setup script.</li>
+            <li>Build the container.</li>
+            <li>Connect the hardware.</li>
+            <li>Continue working.</li>
+        </ol>
+        <br>
+        <p>Of course, reality is never quite that perfect especially when USB drivers and vendor tools are involved, but that is the direction I want.</p>
+
+        <br>
+        <header class="sub-title">The first target: the CH32V307</header>
+        <br>
+        <p>For this first part, which will also be the starting point for a larger project, I am setting up an environment for a WCH CH32V307 development board.</p>
+        <br>
+        <p>The CH32V307 is a 32-bit RISC-V microcontroller. I am using a WCH-Link device to program and debug it.</p>
+        <br>
+        <p>My host machine runs Windows, but I want the compiler and most of the development tools to live inside an Ubuntu 22.04 container.</p>
+        <br>
+        <p>There are a few reasons for that split:</p>
+        <ul class="grid-list-ul">
+            <li>My main machine is Windows, for gaming purposes. It already has access to the USB devices, the WCH-Link drivers, and the vendor tools needed to communicate with the board. It is also where the VS Code interface runs.</li>
+            <li>Linux, on the other hand, is where I prefer to do programming work. It gives me a predictable environment for the compiler, build system, scripts, and command-line tools.</li>
+        </ul>
+        <br>
+        <p>The result sounds slightly strange when described for the first time:</p>
+        <p class="quote">The editor and the hardware connection are on Windows, the compiler and debugger are on Linux, and the program is running on neither of them.</p>
+
+        <br>
+        <header class="sub-title">The technical setup</header>
+        <br>
+        <p>The final arrangement looks more complicated than it really is. It becomes easier to understand once every component has one clear responsibility.</p>
+        <ul class="grid-list-ul">
+            <li>VS Code runs on Windows and provides the user interface.</li>
+            <li>VS Code attaches to an existing Ubuntu container.</li>
+            <li>IntelliSense uses the compiler and headers available inside that container.</li>
+            <li>Make and GCC build the firmware inside Linux.</li>
+            <li>GDB also runs inside the container and controls the debugging session.</li>
+            <li>OpenOCD runs on Windows and communicates with the WCH-Link over USB.</li>
+            <li>GDB connects to OpenOCD through TCP port 3333.</li>
+            <li>OpenOCD translates the commands from GDB into operations on the physical board.</li>
+        </ul>
+        <br>
+        <p>The path looks like this:</p>
+        <pre><code class="language-plaintext">VS Code on Windows
+        |
+        | attaches to the development container
+        v
+GCC, Make, IntelliSense, and GDB in Linux
+        |
+        | TCP connection on port 3333
+        v
+OpenOCD on Windows
+        |
+        | USB
+        v
+WCH-Link
+        |
+        v
+CH32V307</code></pre>
+        <br>
+        <p>At first, I was trying to think of the environment as something that should live entirely inside Windows or entirely inside Docker. That assumption made the problem harder than it needed to be.</p>
+        <p>The important realization was that the complete toolchain did not need to live on one side. The USB-facing part could remain on Windows, where the drivers and hardware access already worked, while the target-aware development tools stayed inside Linux.</p>
+
+        <br>
+        <header class="sub-title">What each debugging component actually does</header>
+        <br>
+        <p>GDB, OpenOCD, and WCH-Link are sometimes described together as “the debugger,” but they are different pieces.</p>
+        <br>
+        <p>GDB understands the firmware:</p>
+        <ul class="grid-list-ul">
+            <li>It reads the ELF file created by the compiler, including its debugging symbols. That is how it knows about functions, variables, source files, and line numbers. GDB is what allows me to place a breakpoint in <span class="inline-code">main()</span>, inspect a variable, or step into a function.</li>
+        </ul>
+        <br>
+        <p>OpenOCD understands how to reach the target:</p>
+        <ul class="grid-list-ul">
+            <li>It acts as a bridge between GDB and the hardware interface. GDB sends debugging commands over a network connection, and OpenOCD translates those commands into something the hardware probe can perform.</li>
+        </ul>
+        <br>
+        <p>WCH-Link is the physical connection:</p>
+        <ul class="grid-list-ul">
+            <li>It sits between the computer and the CH32V307 board. Through it, OpenOCD can halt the processor, read memory, write memory, control breakpoints, and resume execution.</li>
+        </ul>
+        <br>
+        <p>VS Code sits above all of this and provides the interface I interact with.</p>
+        <p>When I press <span class="inline-code">F10</span>, VS Code is not directly telling the microcontroller to execute the next line. It asks GDB to step, GDB communicates with OpenOCD, OpenOCD talks to WCH-Link, and WCH-Link controls the processor. That is a lot of cooperation behind one keyboard shortcut.</p>
+        <br>
+        <p>Understanding this separation made troubleshooting much easier. If a source breakpoint is wrong, I can investigate the ELF file or GDB configuration. If GDB cannot connect, I can inspect the TCP connection or OpenOCD. If OpenOCD cannot find the target, I can look at the WCH-Link, USB drivers, cables, or board power.</p>
+
+        <br>
+        <header class="sub-title">My starting point: the container</header>
+        <br>
+        <p>The project uses Docker Compose to create the development container.</p>
+        <br>
+        <p>The repository is mounted at <span class="inline-code">/workspace</span>, and that directory becomes the working directory inside the container. Changes made through VS Code are immediately visible inside Linux because the container is working with the same project files.</p>
+        <br>
+        <p>The container remains alive throughout the development session. This gives VS Code and the command-line tools a stable environment to attach to instead of creating a temporary container for every build.</p>
+        <br>
+        <p>The Dockerfile installs the WCH GCC 8.2.0 toolchain under <span class="inline-code">/opt/wch-gcc</span>, adds its <span class="inline-code">bin</span> directory to <span class="inline-code">PATH</span>, and clones the CH32V307 SDK into <span class="inline-code">/opt/ch32v307</span>.</p>
+        <br>
+        <p>Inside the container, commands such as these are available normally:</p>
+        <ul class="grid-list-ul">
+            <li><span class="inline-code">riscv-none-embed-gcc</span></li>
+            <li><span class="inline-code">riscv-none-embed-gdb</span></li>
+            <li><span class="inline-code">make</span></li>
+        </ul>
+        <br>
+        <p>The important idea is that the container contains everything required to understand and build the firmware.</p>
+        <br>
+        <p>At this point, command-line builds were already working. I could open a terminal inside the container, run <span class="inline-code">make</span>, and produce the ELF, HEX, and binary files.</p>
+
+        <br>
+        <header class="sub-title">Making the container feel local</header>
+        <br>
+        <p>VS Code’s Dev Containers support connects Windows interface to the Linux development environment. Once the editor attaches to the container, its development tools begin running inside Linux.</p>
+        <br>
+        <p>From my perspective, I am still using an ordinary VS Code window.</p>
+        <p>That is the experience I wanted: isolation without making the project inconvenient to use.</p>
+        <br>
+        <p>A reproducible environment is not very useful if interacting with it is painful. If every small code change requires a sequence of Docker commands, people will eventually bypass the environment and install tools directly on the host.</p>
+        <br>
+        <p class="quote">The container should disappear into the normal workflow as much as possible.</p>
+
+        <br>
+        <header class="sub-title">Why the USB connection remains on Windows</header>
+        <br>
+        <p>The container has GCC, GDB, Make, the vendor SDK, and any other command-line tool I need to build the project. It does not own the USB connection.</p>
+        <br>
+        <p>Windows remains responsible for communicating with WCH-Link and flashing the board. Moving the USB device into Docker would require additional device passthrough and driver configuration. It would also make the setup more dependent on the way Docker Desktop exposes hardware devices.</p>
+        <br>
+        <p>That is possible, but it would add complexity without solving an important problem for this project.</p>
+        <br>
+        <p>The Windows side already communicates with WCH-Link correctly. There is no reason to replace a working hardware connection simply to say that everything runs inside the container.</p>
+        <br>
+        <p>Instead, OpenOCD runs on Windows as a small server. GDB does not care whether OpenOCD is running under the same operating system; it only needs an address and a port.</p>
+        <br>
+        <p>The GDB process inside Docker connects to <span class="inline-code">host.docker.internal:3333</span>. The <span class="inline-code">host.docker.internal</span> address allows the container to reach the Windows host, while port 3333 is the default endpoint used by OpenOCD for GDB connections.</p>
+        <br>
+        <p>While I am debugging, OpenOCD remains running in a Windows terminal. It owns the WCH-Link connection and waits for GDB.</p>
+
+        <br>
+        <header class="sub-title">What the development experience looks like</header>
+        <br>
+        <p>Once every piece is connected, the workflow becomes surprisingly ordinary.</p>
+        <br>
+        <p>I open the repository in VS Code and reopen it inside the Dev Container. From there, I can edit the source code with IntelliSense using the same headers and compiler configuration as the real build.</p>
+        <br>
+        <p class="quote">When I want to compile the project, VS Code runs <span class="inline-code">make</span> inside the container.</p>
+        <br>
+        <p>I currently flash the resulting firmware manually from Windows. This is a deliberate choice for now. I already have a working script for programming the board, and keeping that action explicit makes it easy to know exactly when the firmware changed.</p>
+        <br>
+        <ol class="grid-list-ol">
+            <li>After flashing, I start OpenOCD on Windows and leave it running.</li>
+            <li>Then I place a breakpoint in VS Code and start the debugger.</li>
+            <li>GDB launches inside the container, connects to OpenOCD on Windows, and gains control of the physical CH32V307.</li>
+        </ol>
+        <br>
+        <p>At that point, the usual debugging controls work:</p>
+        <ul class="grid-list-ul">
+            <li><span class="inline-code">F5</span> continues execution.</li>
+            <li><span class="inline-code">F9</span> adds or removes a breakpoint.</li>
+            <li><span class="inline-code">F10</span> steps over a function call.</li>
+            <li><span class="inline-code">F11</span> steps into a function.</li>
+            <li><span class="inline-code">Shift+F11</span> steps out of the current function.</li>
+        </ul>
+        <br>
+        <p>VS Code had used an ELF file built in Linux, launched GDB inside Docker, crossed a TCP connection into Windows, passed through OpenOCD and WCH-Link, and stopped a physical RISC-V processor on the exact source line displayed in the editor.</p>
+        <br>
+        <p>That is exactly what a good development environment should do: hide the routine complexity without hiding the architecture from the person who needs to understand it.</p>
+
+        <br>
+        <header class="sub-title">Where this leaves the project</header>
+        <br>
+        <p>This first part establishes the foundation I need for the larger project.</p>
+        <br>
+        <p>I now have:</p>
+        <ul class="grid-list-ul">
+            <li>A versioned Linux environment for the RISC-V toolchain.</li>
+            <li>A reproducible build using Make.</li>
+            <li>VS Code attached directly to the development container.</li>
+            <li>IntelliSense based on the container’s compiler and SDK.</li>
+            <li>A working connection between GDB in Linux and OpenOCD on Windows.</li>
+            <li>Source-level debugging on a physical CH32V307.</li>
+            <li>A recovery path that does not depend on remembering every manual installation step.</li>
+        </ul>
+        <br>
+        <p>There is still room for more automation.</p>
+        <br>
+        <p>Flashing can eventually become part of the VS Code workflow. Debug and release builds can be separated more clearly. Setup scripts can verify the host tools and drivers. Other boards and communication interfaces can be added as the project grows.</p>
+        <br>
+        <p>For now, however, the important part is working: I can write code, build it in an isolated environment, put it on the board, set a breakpoint, and step through the real firmware.</p>
+        <br>
+        <p>The complete configuration lives in the project repository, where it can be cloned, changed, broken, and rebuilt. If you want the exact files, that is the best place to find them.</p>
+    </section>
+</article>
