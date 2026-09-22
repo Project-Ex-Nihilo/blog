@@ -141,6 +141,13 @@ body {
     color: var(--orange-main);
     font-weight: 900;
     font-size: 1.8rem;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+}
+
+.post-title-suffix {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .post-meta {
