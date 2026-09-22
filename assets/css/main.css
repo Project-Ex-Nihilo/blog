@@ -39,6 +39,17 @@ pre code {
     font-size: 0.8rem !important;
 }
 
+.inline-code {
+    padding: 0.08em 0.35em;
+    border: 1px solid rgba(165, 171, 175, 0.35);
+    border-radius: 4px;
+    background-color: var(--black-hamburger);
+    color: var(--yellow-main);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+}
+
 img {
     max-width: 100%;
     height: auto;
