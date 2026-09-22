@@ -19,6 +19,25 @@ function extractLanguage(language) {
     return "pt";
 }
 
+/**
+ * Renders a title while keeping a short trailing parenthetical together.
+ * @param {HTMLElement} element
+ * @param {string} title
+ * @returns {void}
+ */
+function renderPostTitle(element, title) {
+    const title_parts = title.match(/^(.*)\s+(\([^()]{1,30}\))$/);
+    if (!title_parts) {
+        element.textContent = title;
+        return;
+    }
+
+    const suffix = document.createElement("span");
+    suffix.classList.add("post-title-suffix");
+    suffix.textContent = title_parts[2];
+    element.replaceChildren(`${title_parts[1]} `, suffix);
+}
+
 const page_metadata = {
     en: {
         "/": ["Home", "A workshop log about backend engineering, RISC-V, emulation, and Linux."],
@@ -143,7 +162,7 @@ async function router() {
             if (!loaded || signal.aborted) return;
 
             const post_title = document.getElementById("post-title");
-            if (post_title) post_title.textContent = post.title[language];
+            if (post_title) renderPostTitle(post_title, post.title[language]);
 
             const post_published_date = document.getElementById("post-published-date");
             if (post_published_date) {

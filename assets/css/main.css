@@ -39,6 +39,17 @@ pre code {
     font-size: 0.8rem !important;
 }
 
+.inline-code {
+    padding: 0.08em 0.35em;
+    border: 1px solid rgba(165, 171, 175, 0.35);
+    border-radius: 4px;
+    background-color: var(--black-hamburger);
+    color: var(--yellow-main);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+}
+
 img {
     max-width: 100%;
     height: auto;
@@ -141,6 +152,13 @@ body {
     color: var(--orange-main);
     font-weight: 900;
     font-size: 1.8rem;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+}
+
+.post-title-suffix {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .post-meta {
@@ -206,14 +224,17 @@ a:focus-visible {
 }
 
 .grid-list-ul li {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    column-gap: 0.5em;
+    position: relative;
+    display: block;
+    padding-left: 1.25rem;
     overflow-wrap: anywhere;
 }
 
 .grid-list-ul li::before {
     content: "-";
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .grid-list-ol {

@@ -48,6 +48,22 @@
             "route": "optimization-not-less-code",
             "path": "/src/posts/002-optimization-not-less-code",
             "tag": ["programming", "algorithm"]
+        },
+        {
+            "title": {
+                "pt": "Criando um ambiente de desenvolvimento embarcado com Docker (Parte 1)",
+                "en": "Creating an Embedded Development Environment with Docker (Part 1)"
+            },
+            "description": {
+                "pt": "Como integrar Docker, VS Code, GDB, OpenOCD e WCH-Link em um ambiente reprodutível para desenvolvimento com o CH32V307.",
+                "en": "Integrating Docker, VS Code, GDB, OpenOCD, and WCH-Link into a reproducible CH32V307 development environment."
+            },
+            "author": "Hamon-Rá Taveira Guimarães",
+            "reading_time": "10 min",
+            "date": "2026-09-21",
+            "route": "embedded-development-environment-docker-part-1",
+            "path": "/src/posts/003-embedded-development-environment-docker-part-1",
+            "tag": ["embedded", "docker", "riscv", "debugging", "vscode"]
         }
     ],
     "tags": {
@@ -74,6 +90,22 @@
         "algorithm": {
             "pt": "algoritmo",
             "en": "algorithm"
+        },
+        "embedded": {
+            "pt": "sistemas embarcados",
+            "en": "embedded systems"
+        },
+        "docker": {
+            "pt": "docker",
+            "en": "docker"
+        },
+        "debugging": {
+            "pt": "depuração",
+            "en": "debugging"
+        },
+        "vscode": {
+            "pt": "VS Code",
+            "en": "VS Code"
         }
     }
 }
